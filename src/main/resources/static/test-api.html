@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test API</title>
+</head>
+<body>
+    <h1>Test API Connection</h1>
+    
+    <div>
+        <h3>Step 1: Check Token</h3>
+        <button onclick="checkToken()">Check Token</button>
+        <div id="token-status"></div>
+    </div>
+    
+    <div>
+        <h3>Step 2: Test Debug API</h3>
+        <button onclick="testDebugAPI()">Test Debug API</button>
+        <div id="api-result"></div>
+    </div>
+    
+    <script>
+        function checkToken() {
+            const token = localStorage.getItem('ai_token');
+            const statusDiv = document.getElementById('token-status');
+            
+            if (token) {
+                statusDiv.innerHTML = `
+                    <p style="color: green;">✓ Token exists (${token.length} chars)</p>
+                    <p>First 20 chars: ${token.substring(0, 20)}...</p>
+                `;
+            } else {
+                statusDiv.innerHTML = '<p style="color: red;">✗ No token found. Please login first.</p>';
+            }
+        }
+        
+        async function testDebugAPI() {
+            const resultDiv = document.getElementById('api-result');
+            resultDiv.innerHTML = '<p>Testing API...</p>';
+            
+            const token = localStorage.getItem('ai_token');
+            
+            if (!token) {
+                resultDiv.innerHTML = '<p style="color: red;">No token. Please login first.</p>';
+                return;
+            }
+            
+            const testData = {
+                language: "java",
+                codeSnippet: "public class Test { public static void main(String[] args) { System.out.println('Hello'); } }",
+                context: "test"
+            };
+            
+            try {
+                const response = await fetch('/api/debug/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <p><strong>Status:</strong> ${response.status}</p>
+                    <p><strong>Response:</strong></p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
